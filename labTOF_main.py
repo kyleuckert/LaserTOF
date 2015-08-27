@@ -100,7 +100,7 @@ class labTOF(Frame):
 		menubar.add_cascade(label="File", menu=fileMenu)
 		fileMenu.add_command(label="Open", command=self.onOpen)
 		fileMenu.add_command(label="Export File", command=self.onExport)
-		fileMenu.add_command(label="Quit", command=self.quit)
+		fileMenu.add_command(label="Quit", command=self.quit_destroy)
 
 		#contains calibration menu items
 		#"self" is needed to access items later (to change state)
@@ -128,7 +128,7 @@ class labTOF(Frame):
 		
 		#create instance of the button widget
 		#command specifies the method to be called
-		quitButton = Button(self, text="Quit", command = self.quit)
+		quitButton = Button(self, text="Quit", command = self.quit_destroy)
 		#quitButton.place(x=50, y=50)
 		quitButton.pack(side=RIGHT, padx=5, pady=5)
 		#quitButton.grid(row=5, column=5, padx=5)
@@ -440,10 +440,7 @@ class labTOF(Frame):
 			#fit quadratic fuction through cal points
 			popt, pcov = curve_fit(func_lin, self.cal_time, self.cal_mass)
 			#convert time to mass
-			################
-			#need linear function
-			################
-			self.mass[:] = [popt[0]*(x**2)*(1E10) + popt[1] for x in self.time]
+			self.mass[:] = [popt[0]*x*(1E10) + popt[1] for x in self.time]
 			#plots figure in mass domain
 			self.mass_domain()
 
@@ -481,13 +478,17 @@ class labTOF(Frame):
 	def label_peaks(self):
 		#something goes here eventually
 		print 'this button does not work'
+		
+	def quit_destroy(self):
+		self.parent.destroy()
+		self.parent.quit()
 
 #quadratic function for time to mass conversion
 def func_quad(x, a, b):
 	return (1E10)*a*(x**2)+b
 
 def func_lin(x, a, b):
-	return (1E10)*a*(x**2)+b
+	return (1E10)*a*x+b
 
 
 def main():
