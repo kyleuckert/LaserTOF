@@ -64,6 +64,10 @@ class labTOF(Frame):
 		#time flag=0
 		#mass flag=1
 		self.time_mass_flag=0
+		#flag to indicate MS or MSMS calibration
+		#MS = 0
+		#MSMS = 1
+		self.MSMS_flag=-99
 		#list containing intensity values
 		self.intensity=[]
 		#list containing calibration values. (0,0) is used as a default
@@ -93,20 +97,31 @@ class labTOF(Frame):
 		
 		#contains file menu items
 		fileMenu = Menu(menubar)
+		menubar.add_cascade(label="File", menu=fileMenu)
 		fileMenu.add_command(label="Open", command=self.onOpen)
 		fileMenu.add_command(label="Export File", command=self.onExport)
 		fileMenu.add_command(label="Quit", command=self.quit)
-		menubar.add_cascade(label="File", menu=fileMenu)
 
 		#contains calibration menu items
 		#"self" is needed to access items later (to change state)
+		#default state for save calibration is disabled
+		#state is enabled once a file is loaded
 		self.calMenu=Menu(menubar)     
-		self.calMenu.add_command(label="Start New Calibration", command=self.onCalStart)
-		self.calMenu.add_command(label="Open Calibration File", command=self.onOpenCal)
+		menubar.add_cascade(label="Calibration", menu=self.calMenu)        
+		self.MScalMenu=Menu(menubar)
+		self.calMenu.add_cascade(label="MS Calibration", menu=self.MScalMenu, state=DISABLED)
+		self.MScalMenu.add_command(label="Start New Calibration", command=self.onCalStart)
+		self.MScalMenu.add_command(label="Open Calibration File", command=self.onOpenCal)
+		
+		self.MSMScalMenu=Menu(menubar)
+		self.calMenu.add_cascade(label="MSMS Calibration", menu=self.MSMScalMenu, state=DISABLED)
+		self.MSMScalMenu.add_command(label="Start New Calibration", command=self.onMSMSCalStart)
+		self.MSMScalMenu.add_command(label="Open Calibration File", command=self.onMSMSOpenCal)
+
 		#default state for save calibration is disabled
 		#state is enabled once a calibration is defined
 		self.calMenu.add_command(label="Save Calibration File", command=self.onSaveCal, state=DISABLED)
-		menubar.add_cascade(label="Calibration", menu=self.calMenu)        
+
 
 		#generate figure (no data at first)
 		self.generate_figure([0,1], ' ')
@@ -213,6 +228,9 @@ class labTOF(Frame):
 			#self.peakButton.config(state=NORMAL)
 			#allows for smoothing of data
 			self.smoothButton.config(state=NORMAL)
+			#allows for calibration
+			self.calMenu.entryconfig("MS Calibration", state=NORMAL)
+			self.calMenu.entryconfig("MSMS Calibration", state=NORMAL)
 
 	#export data to txt file
 	def onExport(self):
@@ -248,10 +266,10 @@ class labTOF(Frame):
 			savefile.write(str(self.cal_time[i]))
 			savefile.write(' ')
 			savefile.write(str(self.cal_mass[i]))
-			savefile.write('\n')
+			savefile.write('\r\n')
 		savefile.close()
 		
-	#open previous calibration file
+	#open previous MS (regular) calibration file
 	def onOpenCal(self):
 		#display .txt files in browser window
 		ftypes = [('txt files', '*.txt')]
@@ -273,11 +291,52 @@ class labTOF(Frame):
 			#store values in calibration lists
 			self.cal_time=calt_read
 			self.cal_mass=calm_read
+		#sets MSMS flag for finish_calibrate routine
+		self.MSMS_flag=0
 		#call finish_calibrate method to calibrate and plot data in mass domain
+		self.finish_calibrate()
+
+	#open previous MSMS calibration file
+	def onMSMSOpenCal(self):
+		#display .txt files in browser window
+		ftypes = [('txt files', '*.txt')]
+		dlg = tkFileDialog.Open(self, filetypes = ftypes)
+		filename = dlg.show()
+
+		if filename != '':
+			#list with time calibration value
+			calt_read=[]
+			#list with mass calibration value
+			calm_read=[]
+			file=open(filename,'r')
+			#header=file.readline()
+			for line in file:
+				#read each row - store data in columns
+				temp = line.split(' ')
+				calt_read.append(float(temp[0]))
+				calm_read.append(float(temp[1].rstrip('/n')))
+			#store values in calibration lists
+			self.cal_time=calt_read
+			self.cal_mass=calm_read
+		#sets MSMS flag for finish_calibrate routine
+		self.MSMS_flag=1
+		#call finish_MSMScalibrate method to calibrate and plot data in mass domain
 		self.finish_calibrate()
 
 	#called when "Start New Calibration" is selected
 	def onCalStart(self):
+		#sets MSMS flag for finish_calibrate routine
+		self.MSMS_flag=0
+		#plot data in time domain (reset plot)
+		self.time_domain()
+		#set calibration button (add new, finish) to enabled state
+		self.calibrateButton.config(state=NORMAL)
+		self.finishcalButton.config(state=NORMAL)
+
+	#called when "Start New Calibration" is selected in MSMS mode
+	def onMSMSCalStart(self):
+		#sets MSMS flag for finish_calibrate routine
+		self.MSMS_flag=1
 		#plot data in time domain (reset plot)
 		self.time_domain()
 		#set calibration button (add new, finish) to enabled state
@@ -365,12 +424,27 @@ class labTOF(Frame):
 		#allows user to save calibration file
 		self.calMenu.entryconfig("Save Calibration File", state=NORMAL)
 		
-		#fit quadratic fuction through cal points
-		popt, pcov = curve_fit(func, self.cal_time, self.cal_mass)
-		#convert time to mass
-		self.mass[:] = [popt[0]*(x**2)*(1E10) + popt[1] for x in self.time]
-		#plots figure in mass domain
-		self.mass_domain()
+		#if MS mode (regular)
+		if self.MSMS_flag==0:
+			#fit quadratic fuction through cal points
+			popt, pcov = curve_fit(func_quad, self.cal_time, self.cal_mass)
+			#convert time to mass
+			self.mass[:] = [popt[0]*(x**2)*(1E10) + popt[1] for x in self.time]
+			#plots figure in mass domain
+			self.mass_domain()
+
+		#if MSMS mode
+		elif self.MSMS_flag==1:
+			#fit quadratic fuction through cal points
+			popt, pcov = curve_fit(func_lin, self.cal_time, self.cal_mass)
+			#convert time to mass
+			################
+			#need linear function
+			################
+			self.mass[:] = [popt[0]*(x**2)*(1E10) + popt[1] for x in self.time]
+			#plots figure in mass domain
+			self.mass_domain()
+
 
 	#function for file input
 	def readFile(self, filename):
@@ -407,9 +481,11 @@ class labTOF(Frame):
 		print 'this button does not work'
 
 #quadratic function for time to mass conversion
-def func(x, a, b):
+def func_quad(x, a, b):
 	return (1E10)*a*(x**2)+b
 
+def func_lin(x, a, b):
+	return (1E10)*a*(x**2)+b
 
 
 def main():
