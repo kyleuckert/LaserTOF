@@ -96,7 +96,7 @@ class labTOF(Frame):
 		self.parent.config(menu=menubar)
 		
 		#contains file menu items
-		fileMenu = Menu(menubar)
+		fileMenu = Menu(menubar, tearoff=0)
 		menubar.add_cascade(label="File", menu=fileMenu)
 		fileMenu.add_command(label="Open", command=self.onOpen)
 		fileMenu.add_command(label="Export File", command=self.onExport)
@@ -106,14 +106,14 @@ class labTOF(Frame):
 		#"self" is needed to access items later (to change state)
 		#default state for save calibration is disabled
 		#state is enabled once a file is loaded
-		self.calMenu=Menu(menubar)     
+		self.calMenu=Menu(menubar, tearoff=0)     
 		menubar.add_cascade(label="Calibration", menu=self.calMenu)        
-		self.MScalMenu=Menu(menubar)
+		self.MScalMenu=Menu(menubar, tearoff=0)
 		self.calMenu.add_cascade(label="MS Calibration", menu=self.MScalMenu, state=DISABLED)
 		self.MScalMenu.add_command(label="Start New Calibration", command=self.onCalStart)
 		self.MScalMenu.add_command(label="Open Calibration File", command=self.onOpenCal)
 		
-		self.MSMScalMenu=Menu(menubar)
+		self.MSMScalMenu=Menu(menubar, tearoff=0)
 		self.calMenu.add_cascade(label="MSMS Calibration", menu=self.MSMScalMenu, state=DISABLED)
 		self.MSMScalMenu.add_command(label="Start New Calibration", command=self.onMSMSCalStart)
 		self.MSMScalMenu.add_command(label="Open Calibration File", command=self.onMSMSOpenCal)
@@ -234,6 +234,7 @@ class labTOF(Frame):
 
 	#export data to txt file
 	def onExport(self):
+		#save header info (date/time, ask user for instrument)?
 		#ask for save file name
 		savefile = tkFileDialog.asksaveasfile(mode='wb', defaultextension=".txt")
 		# asksaveasfile return `None` if dialog closed with "cancel".
@@ -266,6 +267,7 @@ class labTOF(Frame):
 			savefile.write(str(self.cal_time[i]))
 			savefile.write(' ')
 			savefile.write(str(self.cal_mass[i]))
+			#\r\n is the newline character for windows
 			savefile.write('\r\n')
 		savefile.close()
 		
