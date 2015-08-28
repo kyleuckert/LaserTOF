@@ -20,8 +20,8 @@ This program will convert mass spectra from the time domain to the mass domain.
 <li>Calibration -> MS(MS) Calibration -> Start New Calibration</li>
 <ul>
 <li>MS calibration includes (0,0)</li>
-<li>MS calibration requires at least one user-selected point (ideally 2) for a quadratic fit: m/z = at^2 + b</li>
-<li>MSMS calibration requires two user-selected points for a linear fit: m/z = at + b</li>
+<li>MS calibration requires at least one user-selected point (ideally 2) for a quadratic fit: m/z = a*t<sup>2</sup> + b</li>
+<li>MSMS calibration requires two user-selected points for a linear fit: m/z = a*t + b</li>
 </ul>
 <li>zoom into desired region (magnifying glass tool)</li>
 <li>Click "Add Calibration Point"</li>
