@@ -17,16 +17,18 @@ This program will convert mass spectra from the time domain to the mass domain.
 <i>Convert spectrum from time to mass domain:</i><br>
 <ul>
 <b>start new calibration</b>
-<li>Calibration -> Start New Calibration</li>
+<li>Calibration -> MS(MS) Calibration -> Start New Calibration</li>
+<ul>
+<li>MS calibration includes (0,0)</li>
+<li>MS calibration requires at least one user-selected point (ideally 2) for a quadratic fit: m/z = at^2 + b</li>
+<li>MSMS calibration requires two user-selected points for a linear fit: m/z = at + b</li>
+</ul>
 <li>zoom into desired region (magnifying glass tool)</li>
 <li>Click "Add Calibration Point"</li>
 <li>click point on graph corresponding to peak</li>
 <li>add the mass value of this peak in the dialog box</li>
 <li>zoom/pan to new area, repeat (from <i>Click "Add Calibration Point"</i> step)</li>
 <li>Click "Finish Calibration"</li>
-<ul>
-<li>calibration includes (0,0)</li>
-</ul>
 </ul>
 <ul>
 <b>import old calibration</b>
