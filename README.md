@@ -87,7 +87,8 @@ This program will convert mass spectra from the time domain to the mass domain.
 
 <b>Future Plans:</b>
 <ul>
-<li>Allow user to label peaks
+<li>Allow user to label peaks</li>
+<li>Break labTOF_main.py into modules</li>
 </ul>
 
 <b>Installation:</b>
