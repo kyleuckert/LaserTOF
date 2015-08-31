@@ -222,12 +222,13 @@ if wave.info.nbSegments > 1
 else
 
     fseek(fid, WAVEDESC + WAVE_DESCRIPTOR + USER_TEXT + TRIGTIME_ARRAY, 'bof');
+    
     if COMM_TYPE == 0  % byte
        wave.y=fread(fid,WAVE_ARRAY_1, 'int8');
     else	%	word
        wave.y=fread(fid,WAVE_ARRAY_1, 'int16');
     end;
-
+    
     %---------------------------------------------------------------------------------------
     % Create corresponding array of time
     %---------------------------------------------------------------------------------------
@@ -235,6 +236,7 @@ else
 
 end
 
+wave.y(1)
 %---------------------------------------------------------------------------------------
 % Transform the ADC values to voltages
 %---------------------------------------------------------------------------------------

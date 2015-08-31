@@ -1,17 +1,3 @@
-#http://zetcode.com/gui/tkinter/dialogs/
-#http://pythonprogramming.net/how-to-embed-matplotlib-graph-tkinter-gui/
-
-#canvas layout
-#http://stackoverflow.com/questions/20149483/python-canvas-and-grid-tkinter
-
-#to do:
-#add message display status/errors
-#clean source
-##natcdf (export using matlab function)
-#label peaks
-#create executable
-#install on lab computer
-
 import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
@@ -32,6 +18,9 @@ import tkFileDialog
 #import labTOF_plot
 import sys
 
+import warnings
+
+import read_lecroy_binary
 
 class labTOF(Frame):
 
@@ -70,12 +59,14 @@ class labTOF(Frame):
 		self.MSMS_flag=-99
 		#list containing intensity values
 		self.intensity=[]
-		#list containing calibration values. (0,0) is used as a default
-		self.cal_time=[0.0]
-		self.cal_mass=[0.0]
+		#list containing calibration values
+		self.cal_time=[]
+		self.cal_mass=[]
 		#calibration point id
 		self.cid=-99
 		self.initUI()
+		#zero mass corresponds to ~40% of parent mass time
+		self.MSMS_zero_time=0.4150#0.4082
         
         
 	#container for other widgets
@@ -99,7 +90,7 @@ class labTOF(Frame):
 		fileMenu = Menu(menubar, tearoff=0)
 		menubar.add_cascade(label="File", menu=fileMenu)
 		fileMenu.add_command(label="Open", command=self.onOpen)
-		fileMenu.add_command(label="Export File", command=self.onExport)
+		fileMenu.add_command(label="Export Data (ASCII file)", command=self.onExport)
 		fileMenu.add_command(label="Quit", command=self.quit_destroy)
 
 		#contains calibration menu items
@@ -150,6 +141,9 @@ class labTOF(Frame):
 		self.peakButton.pack(side=RIGHT, padx=5, pady=5)
 
 		#calibration
+		#identify parent peak in MSMS
+		self.parentButton = Button(self, text="Identify Parent Peak", command = self.calibrate_parent, state=DISABLED)
+		self.parentButton.pack(side=LEFT, padx=5, pady=5)
 		#add calibration point
 		self.calibrateButton = Button(self, text="Add Calibration Point", command = self.calibrate, state=DISABLED)
 		self.calibrateButton.pack(side=LEFT, padx=5, pady=5)
@@ -215,15 +209,18 @@ class labTOF(Frame):
 	def onOpen(self):
 		#displays .txt files in browser window
 		#only reads time domain data files
-		ftypes = [('txt files', '*.txt')]
+		ftypes = [('txt files', '*.txt'), ('binary files', '*.trc')]
 		dlg = tkFileDialog.Open(self, filetypes = ftypes)
 		fl = dlg.show()
-
+		
 		if fl != '':
-			data = self.readFile(fl)
-			self.time=data[0]
-			self.intensity=data[1]
-			#plots datat in time domain
+			if fl[-3:] == 'trc':
+				self.time, self.intensity = read_lecroy_binary.read_timetrace(fl)
+			elif fl[-3:] == 'txt':
+				data = self.readFile(fl)
+				self.time=data[0]
+				self.intensity=data[1]
+			#plots data in time domain
 			self.time_domain()
 			#self.peakButton.config(state=NORMAL)
 			#allows for smoothing of data
@@ -251,7 +248,7 @@ class labTOF(Frame):
 			savefile.write(str(x[i]))
 			savefile.write(' ')
 			savefile.write(str(y[i]))
-			savefile.write('\n')
+			savefile.write('\r\n')
 		savefile.close()
 
 	#save calibration file
@@ -325,13 +322,19 @@ class labTOF(Frame):
 		#call finish_MSMScalibrate method to calibrate and plot data in mass domain
 		self.finish_calibrate()
 
-	#called when "Start New Calibration" is selected
+	#called when "Start New Calibration" is selected from MS cascade
 	def onCalStart(self):
 		#sets MSMS flag for finish_calibrate routine
 		self.MSMS_flag=0
+		#reset calibration points
+		self.cal_time=[]
+		self.cal_mass=[]
+		#sets (0,0) as default
+		self.cal_time.append(0)
+		self.cal_mass.append(0)
 		#plot data in time domain (reset plot)
 		self.time_domain()
-		#set calibration button (add new, finish) to enabled state
+		#set calibration buttons (add new, finish) to enabled state
 		self.calibrateButton.config(state=NORMAL)
 		self.finishcalButton.config(state=NORMAL)
 
@@ -339,24 +342,26 @@ class labTOF(Frame):
 	def onMSMSCalStart(self):
 		#sets MSMS flag for finish_calibrate routine
 		self.MSMS_flag=1
+		#reset calibration points
+		self.cal_time=[]
+		self.cal_mass=[]
 		#plot data in time domain (reset plot)
 		self.time_domain()
-		#set calibration button (add new, finish) to enabled state
-		self.calibrateButton.config(state=NORMAL)
+		#set calibration button (ID parent peak, finish) to enabled state
+		self.parentButton.config(state=NORMAL)
 		self.finishcalButton.config(state=NORMAL)
+
 
 	#called when click is made in plotting environment during calibration
 	def on_click(self, event):	
 		temp_len=len(self.cal_time)
-		#print 'temp len: ', temp_len
-	
 		#when the click is made within the plotting window
 		if event.inaxes is not None:
 			#print 'clicked: ', event.xdata, event.ydata
 			self.cal_time.append(event.xdata*1E-6)
 			#sets up dialog box for user to enter mass value
 			self.MassDialog(self.parent)
-
+		#if click is outside plotting window
 		else:
 			print 'Clicked ouside axes bounds but inside plot window'		
 		#disconnect from calibration click event when a new calibration value is set
@@ -415,6 +420,15 @@ class labTOF(Frame):
 	def calibrate(self):
 		#user selects point
 		self.cid=self.canvas.mpl_connect('button_press_event', self.on_click)
+		
+		
+	#called from MSMS calibration routine
+	#stores user-selected point in cid	
+	def calibrate_parent(self):
+		#user selects point
+		self.cid=self.canvas.mpl_connect('button_press_event', self.on_click)
+		self.parentButton.config(state=DISABLED)
+		
 
 	#called from calibration routine after "finish" button is pressed
 	def finish_calibrate(self):
@@ -423,6 +437,11 @@ class labTOF(Frame):
 		self.finishcalButton.config(state=DISABLED)
 		#allows plotting in mass domain
 		self.massButton.config(state=NORMAL)
+		#for MSMS calibration
+		if self.MSMS_flag==1:
+			#add second calibration time point equal to some percentage of parent peak time
+			self.cal_time.append(self.cal_time[0]*self.MSMS_zero_time)
+			self.cal_mass.append(0)
 		#allows user to save calibration file
 		self.calMenu.entryconfig("Save Calibration File", state=NORMAL)
 		
@@ -432,8 +451,6 @@ class labTOF(Frame):
 			popt, pcov = curve_fit(func_quad, self.cal_time, self.cal_mass)
 			#convert time to mass
 			self.mass[:] = [popt[0]*(x**2)*(1E10) + popt[1] for x in self.time]
-			#plots figure in mass domain
-			self.mass_domain()
 
 		#if MSMS mode
 		elif self.MSMS_flag==1:
@@ -441,8 +458,18 @@ class labTOF(Frame):
 			popt, pcov = curve_fit(func_lin, self.cal_time, self.cal_mass)
 			#convert time to mass
 			self.mass[:] = [popt[0]*x*(1E10) + popt[1] for x in self.time]
-			#plots figure in mass domain
-			self.mass_domain()
+			#discard all data below 0 mass
+			mass_temp=self.mass
+			int_temp=self.intensity
+			self.mass=[]
+			self.intensity=[]
+			for index, mass in enumerate(mass_temp):
+				if mass > 0:
+					self.mass.append(mass)
+					self.intensity.append(int_temp[index])
+			
+		#plots figure in mass domain
+		self.mass_domain()
 
 
 	#function for file input
@@ -479,6 +506,7 @@ class labTOF(Frame):
 		#something goes here eventually
 		print 'this button does not work'
 		
+	#need to destroy parent before quitting, otherwise python crashes on Windows
 	def quit_destroy(self):
 		self.parent.destroy()
 		self.parent.quit()
@@ -492,6 +520,7 @@ def func_lin(x, a, b):
 
 
 def main():
+	warnings.filterwarnings("ignore")
 	#the root window is created
 	root = Tk()
 
