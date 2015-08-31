@@ -9,24 +9,19 @@ This program will convert mass spectra from the time domain to the mass domain.
 <i>Open a file:</i>
 <ul>
 <li>file-> Open-> navigate to file</li>
-<li>currently only .txt files are supported</li>
+<li>currently .txt and .trc (LeCroy binary) files are supported</li>
 <li>files may be comma, space, or tab delimited</li>
 </ul></p>
 
 <p>
 <i>Convert spectrum from time to mass domain:</i><br>
 <ul>
-<b>start new calibration</b>
+<b>start new MS calibration</b>
 <li>Calibration -> MS Calibration -> Start New Calibration</li>
 <ul>
 <li>MS calibration includes (0,0)</li>
-<li>MS calibration requires at least one user-selected point (ideally 2)</li>
+<li>MS calibration requires at least one user-selected point (more points will produce a better fit to the data)</li>
 <li>Applies a quadratic fit: m/z = a*t<sup>2</sup> + b</li>
-</ul>
-<li>Calibration -> MSMS Calibration -> Start New Calibration</li>
-<ul>
-<li>MSMS calibration requires two user-selected points</li>
-<li>Applies a linear fit: m/z = a*t + b</li>
 </ul>
 <li>zoom into desired region (magnifying glass tool)</li>
 <li>Click "Add Calibration Point"</li>
@@ -36,8 +31,22 @@ This program will convert mass spectra from the time domain to the mass domain.
 <li>Click "Finish Calibration"</li>
 </ul>
 <ul>
+<b>start new MSMS calibration</b>
+<li>Calibration -> MSMS Calibration -> Start New Calibration</li>
+<ul>
+<li>MSMS calibration requires the user to identiy the parent peak</li>
+<li>A zero mass point is calculate (associated with approximately 41% of the parent peak time)</li>
+<li>Applies a linear fit: m/z = a*t + b</li>
+</ul>
+<li>zoom into desired region (magnifying glass tool)</li>
+<li>Click "Identiy Parent Peak"</li>
+<li>click point on graph corresponding to peak</li>
+<li>add the mass value of this peak in the dialog box</li>
+<li>Click "Finish Calibration"</li>
+</ul>
+<ul>
 <b>import old calibration</b>
-<li>Calibration-> Open calibration file</li>
+<li>Calibration-> -> (MS)MS Calibration -> Open calibration file</li>
 <li>open previously saved calibration file<br></li>
 </ul>
 <ul>
@@ -73,13 +82,12 @@ This program will convert mass spectra from the time domain to the mass domain.
 <ul>
 <li>File->Export File</li>
 <li>saves current spectrum (in mass or time domain, which ever is displayed)</li>
+<li>data is stored in a two column, space-delimited format</li>
 </ul></p>
 
 <b>Future Plans:</b>
 <ul>
-<li>Include MSMS calibration capability</li>
 <li>Allow user to label peaks
-<li>Allow for binary file input</li>
 </ul>
 
 <b>Installation:</b>
