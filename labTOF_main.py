@@ -461,12 +461,15 @@ class labTOF(Frame):
 			#discard all data below 0 mass
 			mass_temp=self.mass
 			int_temp=self.intensity
+			time_temp=self.time
 			self.mass=[]
 			self.intensity=[]
+			self.time=[]
 			for index, mass in enumerate(mass_temp):
 				if mass > 0:
 					self.mass.append(mass)
 					self.intensity.append(int_temp[index])
+					self.time.append(time_temp[index])
 			
 		#plots figure in mass domain
 		self.mass_domain()
