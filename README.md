@@ -72,6 +72,16 @@ This program will convert mass spectra from the time domain to the mass domain.
 </ul></ul></p>
 
 <p>
+<i>Label Peaks</i>
+<ul>
+<li>zoom in to peak of interest</li>
+<li>click "Label Peak" button</li>
+<li>click the top of the peak</li>
+<li>repeat for all desired peaks</li>
+<li>click "Remove Peaks" to remove all peak labels</li>
+</ul></p>
+
+<p>
 <i>Save Figure</i>
 <ul>
 <li>click Save icon</li>
@@ -87,7 +97,7 @@ This program will convert mass spectra from the time domain to the mass domain.
 
 <b>Future Plans:</b>
 <ul>
-<li>Allow user to label peaks</li>
+<li>Allow user to move peak labels</li>
 <li>Break labTOF_main.py into modules</li>
 </ul>
 
