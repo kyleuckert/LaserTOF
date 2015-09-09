@@ -43,6 +43,7 @@ class labTOF(Frame):
 
 		self.canvas = FigureCanvasTkAgg(self.fig, self)
 		self.toolbar = NavigationToolbar2TkAgg(self.canvas, self)
+		self.toolbar.pack(side=TOP)
 		#canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=True) 
 		
 		#list containing time domain values
@@ -62,11 +63,14 @@ class labTOF(Frame):
 		#list containing calibration values
 		self.cal_time=[]
 		self.cal_mass=[]
+		self.label_mass=[]
+		self.label_time=[]
+		self.label_intensity=[]
 		#calibration point id
 		self.cid=-99
 		self.initUI()
 		#zero mass corresponds to ~40% of parent mass time
-		self.MSMS_zero_time=0.4150#0.4082
+		self.MSMS_zero_time=0.40838#0.4150#0.4082
         
         
 	#container for other widgets
@@ -115,7 +119,7 @@ class labTOF(Frame):
 
 
 		#generate figure (no data at first)
-		self.generate_figure([0,1], ' ')
+		self.generate_figure([0,1], [[],[]], ' ')
 		
 		#create instance of the button widget
 		#command specifies the method to be called
@@ -137,8 +141,11 @@ class labTOF(Frame):
 		self.smoothButton.pack(side=RIGHT, padx=5, pady=5)
 
 		#label peaks in figure
-		self.peakButton = Button(self, text="Label Peaks", command = self.label_peaks, state=DISABLED)
-		self.peakButton.pack(side=RIGHT, padx=5, pady=5)
+		self.labelButton = Button(self, text="Label Peak", command = self.label_peaks, state=DISABLED)
+		self.labelButton.pack(side=RIGHT, padx=5, pady=5)
+
+		self.deletelabelButton = Button(self, text="Remove Labels", command = self.delete_labels, state=DISABLED)
+		self.deletelabelButton.pack(side=RIGHT, padx=5, pady=5)
 
 		#calibration
 		#identify parent peak in MSMS
@@ -157,13 +164,13 @@ class labTOF(Frame):
 	#disabled until calibration is defined
 	def mass_domain(self):
 		self.time_mass_flag=1
-		self.generate_figure([self.mass,self.intensity], 'mass (Da)')
+		self.generate_figure([self.mass,self.intensity], [self.label_mass, self.label_intensity], 'mass (Da)')
 	
 	#convert to time domain	
 	def time_domain(self):
 		self.time_mass_flag=0
 		#plot in micro seconds
-		self.generate_figure([[1E6*x for x in self.time],self.intensity], 'time ($\mu$s)')
+		self.generate_figure([[1E6*x for x in self.time],self.intensity], [self.label_time, self.label_intensity], 'time ($\mu$s)')
 		
 	#smooth data
 	def smooth_data(self):
@@ -185,7 +192,7 @@ class labTOF(Frame):
 			self.time_domain()
 
 	#plot figure
-	def generate_figure(self, data, xaxis_title):
+	def generate_figure(self, data, label, xaxis_title):
 		#clear figure
 		plt.clf()
 		ax = self.fig.add_subplot(111)
@@ -194,6 +201,10 @@ class labTOF(Frame):
 		ax.plot(data[0],data[1])
 		ax.set_xlabel(xaxis_title)
 		ax.set_ylabel('intensity')
+		#add peak labels
+		for index, label_x in enumerate(label[0]):
+			ax.text(0.94*label_x, 1.05*label[1][index], str("%.1f" % label_x))
+			#ax.annotate(str("%.1f" % label_x), xy=(label_x, label[1][index]), xytext=(1.1*label_x, 1.1*label[1][index]), arrowprops=dict(facecolor='black', shrink=0.1),)
 		self.canvas.show()
 		self.canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=True)
 		#self.can.grid(row=1, column=0, columnspan=6, rowspan=3, padx=5, sticky=E+W+S+N)
@@ -209,7 +220,7 @@ class labTOF(Frame):
 	def onOpen(self):
 		#displays .txt files in browser window
 		#only reads time domain data files
-		ftypes = [('txt files', '*.txt'), ('binary files', '*.trc')]
+		ftypes = [('binary files', '*.trc'), ('txt files', '*.txt')]
 		dlg = tkFileDialog.Open(self, filetypes = ftypes)
 		fl = dlg.show()
 		
@@ -222,7 +233,8 @@ class labTOF(Frame):
 				self.intensity=data[1]
 			#plots data in time domain
 			self.time_domain()
-			#self.peakButton.config(state=NORMAL)
+			self.labelButton.config(state=NORMAL)
+			self.deletelabelButton.config(state=NORMAL)
 			#allows for smoothing of data
 			self.smoothButton.config(state=NORMAL)
 			#allows for calibration
@@ -504,11 +516,62 @@ class labTOF(Frame):
 		data=[time, intensity]
 		return data
 
-	#future function to label peaks on figure in order to save figure as an image file with labels
+	#function to label peaks on figure in order to save figure as an image file with labels
 	def label_peaks(self):
-		#something goes here eventually
-		print 'this button does not work'
+		#ask for peak (on_click_label)
+		self.cid=self.canvas.mpl_connect('button_press_event', self.on_click_label)
+	
+	#remove peak labels when button is selected
+	def delete_labels(self):
+		#deletes peak label arrays
+		self.label_time=[]
+		self.label_mass=[]
+		self.label_intensity=[]
+		#if time flag is set
+		if self.time_mass_flag==0:
+			self.time_domain()
+		elif self.time_mass_flag==1:
+			self.mass_domain()
 		
+	#called when click is made to label peak
+	def on_click_label(self, event):
+		temp_len=len(self.label_intensity)
+		#if time flag is set
+		if self.time_mass_flag==0:
+			#temp_len=len(self.label_time)
+			#when the click is made within the plotting window
+			if event.inaxes is not None:
+				#print 'clicked: ', event.xdata, event.ydata
+				self.label_time.append(event.xdata)
+				self.label_intensity.append(event.ydata)
+				#print 'time: ', self.label_time
+				#print 'intensity: ', self.label_intensity
+				self.time_domain()
+			#if click is outside plotting window
+			else:
+				print 'Clicked ouside axes bounds but inside plot window'		
+		#if the mass flag is set
+		elif self.time_mass_flag==1:
+			#temp_len=len(self.label_mass)
+			#when the click is made within the plotting window
+			if event.inaxes is not None:
+				#print 'clicked: ', event.xdata, event.ydata
+				self.label_mass.append(event.xdata)
+				self.label_intensity.append(event.ydata)
+				#print 'mass: ', self.label_mass
+				#print 'intensity: ', self.label_intensity
+				self.mass_domain()
+			#if click is outside plotting window
+			else:
+				print 'Clicked ouside axes bounds but inside plot window'		
+		#self.peak_intensity=event.ydata
+		#plot label
+		
+		#disconnect from click event when a new peak label value is set
+		if temp_len < len(self.label_intensity):
+			self.canvas.mpl_disconnect(self.cid)
+
+
 	#need to destroy parent before quitting, otherwise python crashes on Windows
 	def quit_destroy(self):
 		self.parent.destroy()
@@ -530,7 +593,7 @@ def main():
 	#The geometry() method sets a size for the window and positions it on the screen.
 	#The first two parameters are width and height of the window.
 	#The last two parameters are x and y screen coordinates. 
-	root.geometry("900x500+200+50")
+	root.geometry("1000x500+200+50")
 	
 	#create the instance of the application class
 	app = labTOF(root)
