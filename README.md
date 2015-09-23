@@ -120,4 +120,4 @@ This program will convert mass spectra from the time domain to the mass domain.
 <li>right click .py file, click "properties"</li>
 <li>opens with -> change</li>
 <li>browse to: Computer/C://Users/yourusername/Anaconda/python</li>
-
+</ul></ul></p>
