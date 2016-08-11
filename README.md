@@ -74,11 +74,11 @@ This program will convert mass spectra from the time domain to the mass domain, 
 <p>
 <i>Label Peaks</i>
 <ul>
+<li>click "Format Label" button to change label font, precision, and/or offset</li>
 <li>zoom in to peak of interest</li>
 <li>click "Label Peak" button</li>
 <li>click the top of the peak</li>
 <li>repeat for all desired peaks</li>
-<li>click "Format Label" button to change label font, precision, and/or offset</li>
 <li>peak labels may be dragged to a more desirable location</li>
 <li>click "Remove Peaks" to remove all peak labels</li>
 </ul></p>
