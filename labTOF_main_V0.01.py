@@ -5,9 +5,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.figure import Figure
 
-#not sure what this package is/was for
-#Tim will need to download this package if it is necessary
-#from mpldatacursor import datacursor
+from mpldatacursor import datacursor
 
 import numpy as np
 
@@ -41,7 +39,7 @@ class labTOF(Frame):
 		#delegate the creation of the user interface to the initUI() method
 		#self.parent.title("Lab TOF")
 		#self.pack(fill=BOTH, expand=1)
-		self.fig = Figure(figsize=(12,8), dpi=100)
+		self.fig = Figure(figsize=(4,4), dpi=100)
 		#fig = Figure(facecolor='white', edgecolor='white')
 		self.fig.subplots_adjust(bottom=0.15, left=0.15)
 
@@ -49,11 +47,6 @@ class labTOF(Frame):
 		self.toolbar = NavigationToolbar2TkAgg(self.canvas, self)
 		self.toolbar.pack(side=TOP)
 		#canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=True) 
-
-		#frame for buttons (at bottom)
-		#buttons are arranged on grid, not pack
-		self.frame_button = Frame(self)
-		self.frame_button.pack(side = 'bottom', fill=BOTH, expand=1)
 		
 		#list containing time domain values
 		self.time=[]
@@ -75,16 +68,13 @@ class labTOF(Frame):
 		self.label_mass=[]
 		self.label_time=[]
 		self.label_intensity=[]
-		self.label_size = float(10)
-		self.label_format = "%.0f"
-		self.digits_after = 0
-		self.label_offset = 0.0
 		#calibration point id
 		self.cid=-99
 		self.initUI()
 		#zero mass corresponds to ~40% of parent mass time
 		self.MSMS_zero_time=0.40838#0.4150#0.4082
-
+        
+        
 	#container for other widgets
 	def initUI(self):
 		#set the title of the window using the title() method
@@ -132,68 +122,77 @@ class labTOF(Frame):
 
 		#generate figure (no data at first)
 		self.generate_figure([0,1], [[],[]], ' ')
-
-
-		#calibration
-		Label(self.frame_button, text="Calibration").grid(row=0, column=0, padx=5, pady=5, sticky=W)		
+		
 		#create instance of the button widget
 		#command specifies the method to be called
-		#identify parent peak in MSMS
-		self.parentButton = Button(self.frame_button, text="Identify Parent Peak", command = self.calibrate_parent, state=DISABLED)
-		#self.parentButton.pack(side=LEFT, padx=5, pady=5)
-		self.parentButton.grid(row=0, column=1, padx=5, pady=5, sticky=W)
-		
-		#add calibration point
-		self.calibrateButton = Button(self.frame_button, text="Add Calibration Point", command = self.calibrate, state=DISABLED)
-		#self.calibrateButton.pack(side=LEFT, padx=5, pady=5)
-		self.calibrateButton.grid(row=0, column=2, padx=5, pady=5, sticky=W)
-
-		#finish calibration and convert to mass domain
-		self.finishcalButton = Button(self.frame_button, text="Finish Calibration", command = self.finish_calibrate, state=DISABLED)
-		#self.finishcalButton.pack(side=LEFT, padx=5, pady=5)
-		self.finishcalButton.grid(row=0, column=3, padx=5, pady=5, sticky=W)
-
-
-		Label(self.frame_button, text="Label Spectrum").grid(row=1, column=0, padx=5, pady=5, sticky=W)
-
-		#label peaks in figure
-		self.labelButton = Button(self.frame_button, text="Label Peak", command = self.label_peaks, state=DISABLED)
-		#self.labelButton.pack(side=RIGHT, padx=5, pady=5)
-		self.labelButton.grid(row=1, column=1, padx=5, pady=5, sticky=W)
-
-		self.deletelabelButton = Button(self.frame_button, text="Remove Labels", command = self.delete_labels, state=DISABLED)
-		#self.deletelabelButton.pack(side=RIGHT, padx=5, pady=5)
-		self.deletelabelButton.grid(row=1, column=2, padx=5, pady=5, sticky=W)
-
-		self.formatelabelButton = Button(self.frame_button, text="Format Label", command = self.format_labels)
-		self.formatelabelButton.grid(row=1, column=3, padx=5, pady=5, sticky=W)
-
-
-		Label(self.frame_button, text="Smooth Spectrum").grid(row=2, column=0, padx=5, pady=5, sticky=W)
-
-		#smooth spectrum
-		self.smoothButton = Button(self.frame_button, text="Smooth", command = self.smooth_data, state=DISABLED)
-		#self.smoothButton.pack(side=RIGHT, padx=5, pady=5)
-		self.smoothButton.grid(row=2, column=1, padx=5, pady=5, sticky=W)
-
-
-		Label(self.frame_button, text="Convert Domain").grid(row=3, column=0, padx=5, pady=5, sticky=W)
+		quitButton = Button(self, text="Quit", command = self.quit_destroy)
+		#quitButton.place(x=50, y=50)
+		quitButton.pack(side=RIGHT, padx=5, pady=5)
+		#quitButton.grid(row=5, column=5, padx=5)
 
 		#convert to time domain
-		self.timeButton = Button(self.frame_button, text="Time Domain", command = self.time_domain)
-		#timeButton.pack(side=RIGHT, padx=5, pady=5)
-		self.timeButton.grid(row=3, column=1, padx=5, pady=5, sticky=W)
+		timeButton = Button(self, text="Time Domain", command = self.time_domain)
+		timeButton.pack(side=RIGHT, padx=5, pady=5)
 
 		#convert to mass domain
-		self.massButton = Button(self.frame_button, text="Mass Domain", command = self.mass_domain, state=DISABLED)
-		#self.massButton.pack(side=RIGHT, padx=5, pady=5)
-		self.massButton.grid(row=3, column=2, padx=5, pady=5, sticky=W)
+		self.massButton = Button(self, text="Mass Domain", command = self.mass_domain, state=DISABLED)
+		self.massButton.pack(side=RIGHT, padx=5, pady=5)
 
-		self.quitButton = Button(self.frame_button, text="Quit", command = self.quit_destroy)
-		#quitButton.place(x=50, y=50)
-		#quitButton.pack(side=RIGHT, padx=5, pady=5)
-		self.quitButton.grid(row=3, column=6, padx=5, pady=5, sticky=E)
+		#smooth spectrum
+		self.smoothButton = Button(self, text="Smooth", command = self.smooth_data, state=DISABLED)
+		self.smoothButton.pack(side=RIGHT, padx=5, pady=5)
 
+		#label peaks in figure
+		self.labelButton = Button(self, text="Label Peak", command = self.label_peaks, state=DISABLED)
+		self.labelButton.pack(side=RIGHT, padx=5, pady=5)
+
+		self.deletelabelButton = Button(self, text="Remove Labels", command = self.delete_labels, state=DISABLED)
+		self.deletelabelButton.pack(side=RIGHT, padx=5, pady=5)
+		
+
+		#calibration
+		#identify parent peak in MSMS
+		self.parentButton = Button(self, text="Identify Parent Peak", command = self.calibrate_parent, state=DISABLED)
+		self.parentButton.pack(side=LEFT, padx=5, pady=5)
+		#add calibration point
+		self.calibrateButton = Button(self, text="Add Calibration Point", command = self.calibrate, state=DISABLED)
+		self.calibrateButton.pack(side=LEFT, padx=5, pady=5)
+
+		#finish calibration and convert to mass domain
+		self.finishcalButton = Button(self, text="Finish Calibration", command = self.finish_calibrate, state=DISABLED)
+		self.finishcalButton.pack(side=LEFT, padx=5, pady=5)
+		
+
+	#convert to mass domain
+	#disabled until calibration is defined
+	def mass_domain(self):
+		self.time_mass_flag=1
+		self.generate_figure([self.mass,self.intensity], [self.label_mass, self.label_intensity], 'mass (Da)')
+	
+	#convert to time domain	
+	def time_domain(self):
+		self.time_mass_flag=0
+		#plot in micro seconds
+		self.generate_figure([[1E6*x for x in self.time],self.intensity], [self.label_time, self.label_intensity], 'time ($\mu$s)')
+		
+	#smooth data
+	def smooth_data(self):
+		#smooth self.time/mass/int variables - permanant
+		#probably not a good idea
+		#purpose of smoothing function: to display smoothed plot
+		self.SmoothDialog(self.parent)
+		#wait for dialog to close
+		self.top.wait_window(self.top)
+		smoothed_signal = scipy.signal.savgol_filter(self.intensity,self.window,self.poly)
+		#convert from array to list
+		self.intensity=smoothed_signal.tolist()
+		#print 'intensity: ', len(self.intensity), type(self.intensity)
+		if self.time_mass_flag == 1:
+			#print 'mass: ', len(self.mass), type(self.mass)
+			self.mass_domain()
+		else:
+			#print 'time: ', len(self.time), type(self.time)
+			self.time_domain()
 
 	#plot figure
 	def generate_figure(self, data, label, xaxis_title):
@@ -207,16 +206,8 @@ class labTOF(Frame):
 		ax.set_ylabel('intensity')
 		#add peak labels
 		for index, label_x in enumerate(label[0]):
-			#ax.text(0.94*label_x, 1.05*label[1][index], str("%.1f" % label_x))
+			ax.text(0.94*label_x, 1.05*label[1][index], str("%.1f" % label_x))
 			#ax.annotate(str("%.1f" % label_x), xy=(label_x, label[1][index]), xytext=(1.1*label_x, 1.1*label[1][index]), arrowprops=dict(facecolor='black', shrink=0.1),)
-			#ax.annotate(str("%.1f" % label_x), xy=(label_x, label[1][index]), xytext=(1.0*label_x, 1.2*label[1][index]),)
-			#I could separate format, offset, precision into an array for each label
-			an1 = ax.annotate(str(self.label_format % round(label_x + self.label_offset, int(self.digits_after))), xy=(label_x, label[1][index]), xytext=(label_x, label[1][index]), fontsize=self.label_size)
-			an1.draggable(state=True)
-			#need to retrieve new label position and update position array
-			#self.label_mass[index]=(event.xdata)
-			#self.label_intensity[index]=(event.ydata)
-			#self.label_time[index]=(event.xdata)
 		
 		#remove self.label_time values
 		#set label_peaks to generate figure again with loop that allows peak labeling (datacursor()) - set flag, reset flag in loop
@@ -283,45 +274,6 @@ class labTOF(Frame):
 			savefile.write(str(y[i]))
 			savefile.write('\r\n')
 		savefile.close()
-
-	#convert to mass domain
-	#disabled until calibration is defined
-	def mass_domain(self):
-		self.time_mass_flag=1
-		self.generate_figure([self.mass,self.intensity], [self.label_mass, self.label_intensity], 'mass (Da)')
-	
-	#convert to time domain	
-	def time_domain(self):
-		self.time_mass_flag=0
-		#plot in micro seconds
-		self.generate_figure([[1E6*x for x in self.time],self.intensity], [self.label_time, self.label_intensity], 'time ($\mu$s)')
-		
-	#smooth data
-	def smooth_data(self):
-		#smooth self.time/mass/int variables - permanant
-		#probably not a good idea
-		#purpose of smoothing function: to display smoothed plot
-		self.SmoothDialog(self.parent)
-		#wait for dialog to close
-		self.top.wait_window(self.top)
-		smoothed_signal = scipy.signal.savgol_filter(self.intensity,self.window,self.poly)
-		#convert from array to list
-		self.intensity=smoothed_signal.tolist()
-		#print 'intensity: ', len(self.intensity), type(self.intensity)
-		if self.time_mass_flag == 1:
-			#print 'mass: ', len(self.mass), type(self.mass)
-			self.mass_domain()
-		else:
-			#print 'time: ', len(self.time), type(self.time)
-			self.time_domain()
-
-	#format labels
-	def format_labels(self):
-		self.FormatLabelDialog(self.parent)
-		#wait for dialog to close
-		self.top.wait_window(self.top)
-		self.label_size = float(self.label_size)
-		self.label_format = "%."+self.digits_after+"f"
 
 	#save calibration file
 	def onSaveCal(self):
@@ -460,54 +412,18 @@ class labTOF(Frame):
 		#must be greater than poly value, positive, odd (51)
 		Label(top, text="Window Length:").grid(row=0, column=0, sticky=W, padx=5, pady=5)
 		self.w=Entry(top)
-		self.w.insert(0, '151')
 		self.w.grid(row=0, column=1, padx=5, pady=5)
 
 		#polynomial order
 		#must be less than window length (3)
 		Label(top, text="Polynomial Order:").grid(row=1, column=0, sticky=W, padx=5, pady=5)
 		self.p=Entry(top)
-		self.p.insert(0, '3')
 		self.p.grid(row=1, column=1, padx=5, pady=5)
 		
 		#calls DialogSmoothOK to set these values
 		b=Button(top, text="OK", command=self.DialogSmoothOK)
 		b.grid(row=2, column=1, padx=5, pady=5)
-
-	def FormatLabelDialog(self, parent):
-		top = self.top = Toplevel(self.parent)
-		#font size
-		Label(top, text="Font Size:").grid(row=0, column=0, sticky=W, padx=5, pady=5)
-		self.fs=Entry(top)
-		self.fs.insert(0, '10')
-		self.fs.grid(row=0, column=1, padx=5, pady=5)
-		
-		#Precision
-		Label(top, text="Digits After Decimal:").grid(row=1, column=0, sticky=W, padx=5, pady=5)
-		self.dg=Entry(top)
-		self.dg.insert(0, '0')
-		self.dg.grid(row=1, column=1, padx=5, pady=5)
-		
-		#label offset
-		Label(top, text="Label Offset:").grid(row=2, column=0, sticky=W, padx=5, pady=5)
-		self.lo=Entry(top)
-		self.lo.insert(0, '0.0')
-		self.lo.grid(row=2, column=1, padx=5, pady=5)
-		
-		#calls DialogLabelOK to set these values
-		b=Button(top, text="OK", command=self.DialogLabelOK)
-		b.grid(row=3, column=1, padx=5, pady=5)
-
-	#called from smooth dialog box within smooth routine
-	def DialogLabelOK(self):
-		#sets user-defined font size
-		self.label_size=float(self.fs.get())
-		#sets user-defined precision
-		self.digits_after=str(self.dg.get())
-		#sets user-defined label offset
-		self.label_offset=float(self.lo.get())
-		self.top.destroy()
-
+	
 	#called from smooth dialog box within smooth routine
 	def DialogSmoothOK(self):
 		#sets user-defined window length
@@ -689,7 +605,7 @@ def main():
 	#The geometry() method sets a size for the window and positions it on the screen.
 	#The first two parameters are width and height of the window.
 	#The last two parameters are x and y screen coordinates. 
-	root.geometry("1000x700+100+30")
+	root.geometry("1000x500+200+50")
 	
 	#create the instance of the application class
 	app = labTOF(root)
