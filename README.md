@@ -1,7 +1,7 @@
 # LaserTOF
 <b>Description:</b><br>
 <p>
-This program will convert mass spectra from the time domain to the mass domain.
+This program will convert mass spectra from the time domain to the mass domain, calibrate mass spectra and MS/MS spectra, annotate peaks, and export spectra to ASCII or image files.
 </p>
 
 <b>Operation:</b><br>
@@ -78,6 +78,7 @@ This program will convert mass spectra from the time domain to the mass domain.
 <li>click "Label Peak" button</li>
 <li>click the top of the peak</li>
 <li>repeat for all desired peaks</li>
+<li>click "Format Label" button to change label font, precision, and/or offset</li>
 <li>peak labels may be dragged to a more desirable location</li>
 <li>click "Remove Peaks" to remove all peak labels</li>
 </ul></p>
