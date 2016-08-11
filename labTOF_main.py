@@ -43,7 +43,7 @@ class labTOF(Frame):
 		#self.pack(fill=BOTH, expand=1)
 		self.fig = Figure(figsize=(12,8), dpi=100)
 		#fig = Figure(facecolor='white', edgecolor='white')
-		self.fig.subplots_adjust(bottom=0.15, left=0.15)
+		self.fig.subplots_adjust(bottom=0.15, left=0.13, right=0.95, top=0.95)
 
 		self.canvas = FigureCanvasTkAgg(self.fig, self)
 		self.toolbar = NavigationToolbar2TkAgg(self.canvas, self)
