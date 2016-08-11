@@ -185,7 +185,7 @@ class labTOF(Frame):
 		self.timeButton.grid(row=3, column=1, padx=5, pady=5, sticky=W)
 
 		#convert to mass domain
-		self.massButton = Button(self.frame_button, text="Mass Domain", command = self.mass_domain, state=DISABLED)
+		self.massButton = Button(self.frame_button, text="Mass Domain", command = self.mass_domain)
 		#self.massButton.pack(side=RIGHT, padx=5, pady=5)
 		self.massButton.grid(row=3, column=2, padx=5, pady=5, sticky=W)
 
@@ -204,7 +204,7 @@ class labTOF(Frame):
 		ax.cla()
 		spectrum=ax.plot(data[0],data[1])
 		ax.set_xlabel(xaxis_title)
-		ax.set_ylabel('intensity')
+		ax.set_ylabel('intensity (V)')
 		#add peak labels
 		for index, label_x in enumerate(label[0]):
 			#ax.text(0.94*label_x, 1.05*label[1][index], str("%.1f" % label_x))
@@ -250,10 +250,14 @@ class labTOF(Frame):
 				self.time, self.intensity = read_lecroy_binary.read_timetrace(fl)
 			elif fl[-3:] == 'txt':
 				data = self.readFile(fl)
-				self.time=data[0]
 				self.intensity=data[1]
 			#plots data in time domain
-			self.time_domain()
+			if self.time_mass_flag==0:
+				self.time=data[0]
+				self.time_domain()
+			elif self.time_mass_flag==1:
+				self.mass=data[0]
+				self.mass_domain()
 			self.labelButton.config(state=NORMAL)
 			self.deletelabelButton.config(state=NORMAL)
 			#allows for smoothing of data
