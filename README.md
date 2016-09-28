@@ -19,8 +19,8 @@ This program will convert mass spectra from the time domain to the mass domain, 
 <b>start new MS calibration</b>
 <li>Calibration -> MS Calibration -> Start New Calibration</li>
 <ul>
-<li>MS calibration includes (0,0)</li>
-<li>MS calibration requires at least one user-selected point (more points will produce a better fit to the data)</li>
+<li>Include (0,0): MS calibration includes mass = 0 at time = 0, requires at least one user-selected point (more points will produce a better fit to the data)</li>
+<li>Exclude (0,0): MS calibration excludes mass = 0 at time = 0, requires at least two user-selected point (more points will produce a better fit to the data)</li>
 <li>Applies a quadratic fit: m/z = a*t<sup>2</sup> + b</li>
 </ul>
 <li>zoom into desired region (magnifying glass tool)</li>
