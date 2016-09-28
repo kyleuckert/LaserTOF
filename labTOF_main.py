@@ -117,8 +117,8 @@ class labTOF(Frame):
 		menubar.add_cascade(label="Calibration", menu=self.calMenu)        
 		self.MScalMenu=Menu(menubar, tearoff=0)
 		self.calMenu.add_cascade(label="MS Calibration", menu=self.MScalMenu, state=DISABLED)
-		self.MScalMenu.add_command(label="Start New Calibration: include time=0, mass=0", command=self.onCalStartInclude)
-		self.MScalMenu.add_command(label="Start New Calibration: exclude time=0, mass=0", command=self.onCalStartExclude)
+		self.MScalMenu.add_command(label="Start New Calibration: include (0,0)", command=self.onCalStartInclude)
+		self.MScalMenu.add_command(label="Start New Calibration: exclude (0,0)", command=self.onCalStartExclude)
 		self.MScalMenu.add_command(label="Open Calibration File", command=self.onOpenCal)
 		
 		self.MSMScalMenu=Menu(menubar, tearoff=0)
