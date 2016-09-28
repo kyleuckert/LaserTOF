@@ -117,7 +117,8 @@ class labTOF(Frame):
 		menubar.add_cascade(label="Calibration", menu=self.calMenu)        
 		self.MScalMenu=Menu(menubar, tearoff=0)
 		self.calMenu.add_cascade(label="MS Calibration", menu=self.MScalMenu, state=DISABLED)
-		self.MScalMenu.add_command(label="Start New Calibration", command=self.onCalStart)
+		self.MScalMenu.add_command(label="Start New Calibration: include time=0, mass=0", command=self.onCalStartInclude)
+		self.MScalMenu.add_command(label="Start New Calibration: exclude time=0, mass=0", command=self.onCalStartExclude)
 		self.MScalMenu.add_command(label="Open Calibration File", command=self.onOpenCal)
 		
 		self.MSMScalMenu=Menu(menubar, tearoff=0)
@@ -203,8 +204,14 @@ class labTOF(Frame):
 		#clear axis
 		ax.cla()
 		spectrum=ax.plot(data[0],data[1])
-		ax.set_xlabel(xaxis_title)
-		ax.set_ylabel('intensity (V)')
+		ax.set_xlabel(xaxis_title)#, fontsize=6)
+		ax.set_ylabel('intensity (V)')#, fontsize=6)
+		#ax.tick_params('both', length=4, width=1, which='major')
+		#ax.tick_params('both', length=2, width=0.5, which='minor')
+		#for tick in ax.xaxis.get_major_ticks():
+			#tick.label.set_fontsize(6)
+		#for tick in ax.yaxis.get_major_ticks():
+			#tick.label.set_fontsize(6)
 		#add peak labels
 		for index, label_x in enumerate(label[0]):
 			#ax.text(0.94*label_x, 1.05*label[1][index], str("%.1f" % label_x))
@@ -227,10 +234,12 @@ class labTOF(Frame):
 		#datacursor(spectrum, display='multiple', draggable=True, formatter='{x:.1f}'.format, bbox=None)
 		
 		self.canvas.show()
+		#self.canvas.get_tk_widget().pack(side=BOTTOM)
 		self.canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=True)
 		#self.can.grid(row=1, column=0, columnspan=6, rowspan=3, padx=5, sticky=E+W+S+N)
 
 		self.toolbar.update()
+		#self.canvas._tkcanvas.pack(side=TOP)
 		self.canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=True)
 
 	#def delete_figure(self):
@@ -248,16 +257,23 @@ class labTOF(Frame):
 		if fl != '':
 			if fl[-3:] == 'trc':
 				self.time, self.intensity = read_lecroy_binary.read_timetrace(fl)
+				#plots data in time domain
+				if self.time_mass_flag==0:
+					self.time_domain()
+				#plots data in mass domain
+				elif self.time_mass_flag==1:
+					self.mass_domain()
+
 			elif fl[-3:] == 'txt':
 				data = self.readFile(fl)
 				self.intensity=data[1]
-			#plots data in time domain
-			if self.time_mass_flag==0:
-				self.time=data[0]
-				self.time_domain()
-			elif self.time_mass_flag==1:
-				self.mass=data[0]
-				self.mass_domain()
+				self.intensity = [x+0.00075 for x in data[1]]
+				if self.time_mass_flag==0:
+					self.time=data[0]
+					self.time_domain()
+				elif self.time_mass_flag==1:
+					self.mass=data[0]
+					self.mass_domain()
 			self.labelButton.config(state=NORMAL)
 			self.deletelabelButton.config(state=NORMAL)
 			#allows for smoothing of data
@@ -399,7 +415,7 @@ class labTOF(Frame):
 		self.finish_calibrate()
 
 	#called when "Start New Calibration" is selected from MS cascade
-	def onCalStart(self):
+	def onCalStartInclude(self):
 		#sets MSMS flag for finish_calibrate routine
 		self.MSMS_flag=0
 		#reset calibration points
@@ -408,6 +424,22 @@ class labTOF(Frame):
 		#sets (0,0) as default
 		self.cal_time.append(0)
 		self.cal_mass.append(0)
+		#plot data in time domain (reset plot)
+		self.time_domain()
+		#set calibration buttons (add new, finish) to enabled state
+		self.calibrateButton.config(state=NORMAL)
+		self.finishcalButton.config(state=NORMAL)
+
+	#called when "Start New Calibration" is selected from MS cascade
+	def onCalStartExclude(self):
+		#sets MSMS flag for finish_calibrate routine
+		self.MSMS_flag=0
+		#reset calibration points
+		self.cal_time=[]
+		self.cal_mass=[]
+		#sets (0,0) as default
+		#self.cal_time.append(0)
+		#self.cal_mass.append(0)
 		#plot data in time domain (reset plot)
 		self.time_domain()
 		#set calibration buttons (add new, finish) to enabled state
