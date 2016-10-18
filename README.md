@@ -93,7 +93,7 @@ This program will convert mass spectra from the time domain to the mass domain, 
 <i>Save spectrum as ASCII file</i>
 <ul>
 <li>File->Export File</li>
-<li>saves current spectrum (in mass or time domain, which ever is displayed)</li>
+<li>saves current spectrum (in mass or time domain, whichever is displayed)</li>
 <li>data is stored in a two column, space-delimited format</li>
 </ul></p>
 
