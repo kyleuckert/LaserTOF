@@ -145,24 +145,24 @@ class labTOF(Frame):
 		self.parentButton.grid(row=0, column=1, padx=5, pady=5, sticky=W)
 
 		#identify half-parent peak in MSMS
-		#self.halfparentButton = Button(self.frame_button, text="Identify Half-Parent Peak", command = self.calibrate_halfparent, state=DISABLED)
+		self.halfparentButton = Button(self.frame_button, text="Identify Half-Parent Peak", command = self.calibrate_halfparent, state=DISABLED)
 		#self.parentButton.pack(side=LEFT, padx=5, pady=5)
-		#self.halfparentButton.grid(row=0, column=2, padx=5, pady=5, sticky=W)
+		self.halfparentButton.grid(row=0, column=2, padx=5, pady=5, sticky=W)
 		
 		#add calibration point
 		self.calibrateButton = Button(self.frame_button, text="Add Calibration Point", command = self.calibrate, state=DISABLED)
 		#self.calibrateButton.pack(side=LEFT, padx=5, pady=5)
-		self.calibrateButton.grid(row=0, column=2, padx=5, pady=5, sticky=W)
+		self.calibrateButton.grid(row=0, column=3, padx=5, pady=5, sticky=W)
 
 		#set MSMS calibration constant MSMS
 		self.constantButton = Button(self.frame_button, text="Set MSMS Constant", command = self.calibration_constant, state=DISABLED)
 		#self.parentButton.pack(side=LEFT, padx=5, pady=5)
-		self.constantButton.grid(row=0, column=3, padx=5, pady=5, sticky=W)
+		self.constantButton.grid(row=0, column=4, padx=5, pady=5, sticky=W)
 
 		#finish calibration and convert to mass domain
 		self.finishcalButton = Button(self.frame_button, text="Finish Calibration", command = self.finish_calibrate, state=DISABLED)
 		#self.finishcalButton.pack(side=LEFT, padx=5, pady=5)
-		self.finishcalButton.grid(row=0, column=4, padx=5, pady=5, sticky=W)
+		self.finishcalButton.grid(row=0, column=5, padx=5, pady=5, sticky=W)
 
 
 		Label(self.frame_button, text="Label Spectrum").grid(row=1, column=0, padx=5, pady=5, sticky=W)
@@ -469,11 +469,9 @@ class labTOF(Frame):
 		self.time_domain()
 		#set calibration button (ID parent peak, finish) to enabled state
 		self.parentButton.config(state=NORMAL)
-		#self.halfparentButton.config(state=DISABLED)
-		self.calibrateButton.config(state=DISABLED)
+		self.halfparentButton.config(state=DISABLED)
 		self.constantButton.config(state=NORMAL)
 		self.finishcalButton.config(state=DISABLED)
-		self.counter=1
 
 
 	#called when click is made in plotting environment during calibration
@@ -591,16 +589,16 @@ class labTOF(Frame):
 		self.cid=self.canvas.mpl_connect('button_press_event', self.on_click)
 		self.parentButton.config(state=DISABLED)
 		self.finishcalButton.config(state=NORMAL)
-		#self.halfparentButton.config(state=NORMAL)
-		self.calibrateButton.config(state=NORMAL)
+		self.halfparentButton.config(state=NORMAL)
+		#self.calibrateButton.config(state=NORMAL)
 
 	#called from MSMS calibration routine
 	#stores user-selected point in cid	
-	#def calibrate_halfparent(self):
+	def calibrate_halfparent(self):
 		#user selects point
-		#self.cid=self.canvas.mpl_connect('button_press_event', self.on_click)
-		#self.halfparentButton.config(state=NORMAL)
-		#self.finishcalButton.config(state=NORMAL)
+		self.cid=self.canvas.mpl_connect('button_press_event', self.on_click)
+		self.halfparentButton.config(state=DISABLED)
+		self.finishcalButton.config(state=NORMAL)
 		#self.calibrateButton.config(state=NORMAL)
 		
 	#user defined calibration constant
@@ -635,7 +633,7 @@ class labTOF(Frame):
 		self.calibrateButton.config(state=DISABLED)
 		self.finishcalButton.config(state=DISABLED)
 		self.parentButton.config(state=DISABLED)
-		#self.halfparentButton.config(state=DISABLED)
+		self.halfparentButton.config(state=DISABLED)
 		self.constantButton.config(state=DISABLED)
 		#allows plotting in mass domain
 		self.massButton.config(state=NORMAL)
