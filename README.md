@@ -34,7 +34,7 @@ This program will convert mass spectra from the time domain to the mass domain, 
 <b>start new MSMS calibration</b>
 <li>Calibration -> MSMS Calibration -> Start New Calibration</li>
 <ul>
-<li>MSMS calibration requires the user to identiy the parent peak</li>
+<li>MSMS calibration requires the user to identiy at least the parent peak</li>
 <ul>
 <li>A half-parent peak (or any additional peak) may also be identified</li>
 <li>Alternatively, if only the parent peak is identified, a zero mass point is calculated (associated with approximately 41% of the parent peak time)</li>
@@ -46,6 +46,7 @@ This program will convert mass spectra from the time domain to the mass domain, 
 <li>Click "Identiy Parent Peak"</li>
 <li>click point on graph corresponding to peak</li>
 <li>add the mass value of this peak in the dialog box</li>
+<li>repeat this process for any additional peaks (if applicable) by clicking "Add Calibration Point" button</li>
 <li>Click "Finish Calibration"</li>
 </ul>
 <ul>
