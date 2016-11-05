@@ -35,7 +35,11 @@ This program will convert mass spectra from the time domain to the mass domain, 
 <li>Calibration -> MSMS Calibration -> Start New Calibration</li>
 <ul>
 <li>MSMS calibration requires the user to identiy the parent peak</li>
-<li>A zero mass point is calculate (associated with approximately 41% of the parent peak time)</li>
+<ul>
+<li>A half-parent peak (or any additional peak) may also be identified</li>
+<li>Alternatively, if only the parent peak is identified, a zero mass point is calculated (associated with approximately 41% of the parent peak time)</li>
+<li>This calibration constant may also be defined by the user by selecting the "Set MSMS Constant" button</li>
+</ul>
 <li>Applies a linear fit: m/z = a*t + b</li>
 </ul>
 <li>zoom into desired region (magnifying glass tool)</li>
