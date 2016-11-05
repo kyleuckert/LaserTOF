@@ -143,26 +143,16 @@ class labTOF(Frame):
 		self.parentButton = Button(self.frame_button, text="Identify Parent Peak", command = self.calibrate_parent, state=DISABLED)
 		#self.parentButton.pack(side=LEFT, padx=5, pady=5)
 		self.parentButton.grid(row=0, column=1, padx=5, pady=5, sticky=W)
-
-		#identify half-parent peak in MSMS
-		self.halfparentButton = Button(self.frame_button, text="Identify Half-Parent Peak", command = self.calibrate_halfparent, state=DISABLED)
-		#self.parentButton.pack(side=LEFT, padx=5, pady=5)
-		self.halfparentButton.grid(row=0, column=2, padx=5, pady=5, sticky=W)
 		
 		#add calibration point
 		self.calibrateButton = Button(self.frame_button, text="Add Calibration Point", command = self.calibrate, state=DISABLED)
 		#self.calibrateButton.pack(side=LEFT, padx=5, pady=5)
-		self.calibrateButton.grid(row=0, column=3, padx=5, pady=5, sticky=W)
-
-		#set MSMS calibration constant MSMS
-		self.constantButton = Button(self.frame_button, text="Set MSMS Constant", command = self.calibration_constant, state=DISABLED)
-		#self.parentButton.pack(side=LEFT, padx=5, pady=5)
-		self.constantButton.grid(row=0, column=4, padx=5, pady=5, sticky=W)
+		self.calibrateButton.grid(row=0, column=2, padx=5, pady=5, sticky=W)
 
 		#finish calibration and convert to mass domain
 		self.finishcalButton = Button(self.frame_button, text="Finish Calibration", command = self.finish_calibrate, state=DISABLED)
 		#self.finishcalButton.pack(side=LEFT, padx=5, pady=5)
-		self.finishcalButton.grid(row=0, column=5, padx=5, pady=5, sticky=W)
+		self.finishcalButton.grid(row=0, column=3, padx=5, pady=5, sticky=W)
 
 
 		Label(self.frame_button, text="Label Spectrum").grid(row=1, column=0, padx=5, pady=5, sticky=W)
@@ -438,8 +428,7 @@ class labTOF(Frame):
 		self.time_domain()
 		#set calibration buttons (add new, finish) to enabled state
 		self.calibrateButton.config(state=NORMAL)
-		self.finishcalButton.config(state=DISABLED)
-		self.counter=1
+		self.finishcalButton.config(state=NORMAL)
 
 	#called when "Start New Calibration" is selected from MS cascade
 	def onCalStartExclude(self):
@@ -455,8 +444,7 @@ class labTOF(Frame):
 		self.time_domain()
 		#set calibration buttons (add new, finish) to enabled state
 		self.calibrateButton.config(state=NORMAL)
-		self.finishcalButton.config(state=DISABLED)
-		self.counter=0
+		self.finishcalButton.config(state=NORMAL)
 
 	#called when "Start New Calibration" is selected in MSMS mode
 	def onMSMSCalStart(self):
@@ -469,9 +457,7 @@ class labTOF(Frame):
 		self.time_domain()
 		#set calibration button (ID parent peak, finish) to enabled state
 		self.parentButton.config(state=NORMAL)
-		self.halfparentButton.config(state=DISABLED)
-		self.constantButton.config(state=NORMAL)
-		self.finishcalButton.config(state=DISABLED)
+		self.finishcalButton.config(state=NORMAL)
 
 
 	#called when click is made in plotting environment during calibration
@@ -578,9 +564,7 @@ class labTOF(Frame):
 	def calibrate(self):
 		#user selects point
 		self.cid=self.canvas.mpl_connect('button_press_event', self.on_click)
-		self.counter=self.counter+1
-		if self.counter > 1:
-			self.finishcalButton.config(state=NORMAL)
+		
 		
 	#called from MSMS calibration routine
 	#stores user-selected point in cid	
@@ -588,63 +572,23 @@ class labTOF(Frame):
 		#user selects point
 		self.cid=self.canvas.mpl_connect('button_press_event', self.on_click)
 		self.parentButton.config(state=DISABLED)
-		self.finishcalButton.config(state=NORMAL)
-		self.halfparentButton.config(state=NORMAL)
-		#self.calibrateButton.config(state=NORMAL)
-
-	#called from MSMS calibration routine
-	#stores user-selected point in cid	
-	def calibrate_halfparent(self):
-		#user selects point
-		self.cid=self.canvas.mpl_connect('button_press_event', self.on_click)
-		self.halfparentButton.config(state=DISABLED)
-		self.finishcalButton.config(state=NORMAL)
-		#self.calibrateButton.config(state=NORMAL)
 		
-	#user defined calibration constant
-	def calibration_constant(self):
-		self.ConstantDialog(self.parent)
-		#wait for dialog to close
-		self.top.wait_window(self.top)
-		#recompute time-mass conversion
-		#if len(self.cal_time) > 0:
-			#self.finishcalButton.config(state=NORMAL)
 
-	
-	def ConstantDialog(self, parent):
-		top = self.top = Toplevel(self.parent)
-		Label(top, text="MSMS Calibration Constant:").grid(row=0, column=0, sticky=W, padx=5, pady=5)
-		self.c=Entry(top)
-		self.c.insert(0, self.MSMS_zero_time)
-		self.c.grid(row=0, column=1, padx=5, pady=5)
-		#calls DialogConstantOK to set these values
-		b=Button(top, text="OK", command=self.DialogConstantOK)
-		b.grid(row=2, column=1, padx=5, pady=5)
-
-	def DialogConstantOK(self):
-		#sets user-defined calibration constant
-		self.MSMS_zero_time=float(self.c.get())
-		self.top.destroy()
-		
-		
 	#called from calibration routine after "finish" button is pressed
 	def finish_calibrate(self):
 		#disables buttons until "start new calibration" is selected
 		self.calibrateButton.config(state=DISABLED)
 		self.finishcalButton.config(state=DISABLED)
-		self.parentButton.config(state=DISABLED)
-		self.halfparentButton.config(state=DISABLED)
-		self.constantButton.config(state=DISABLED)
 		#allows plotting in mass domain
 		self.massButton.config(state=NORMAL)
 		#for MSMS calibration
 		if self.MSMS_flag==1:
-			#add second calibration time point equal to some percentage of parent peak time if necessary
-			#if cal_time has only one value:
-			if len(self.cal_time) == 1:
-				self.cal_time.append(self.cal_time[0]*self.MSMS_zero_time)
-				self.cal_mass.append(0)
-
+			#add second calibration time point equal to some percentage of parent peak time
+			self.cal_time.append(self.cal_time[0]*self.MSMS_zero_time)
+			self.cal_mass.append(0)
+		#allows user to save calibration file
+		self.calMenu.entryconfig("Save Calibration File", state=NORMAL)
+		
 		#if MS mode (regular)
 		if self.MSMS_flag==0:
 			#fit quadratic fuction through cal points
@@ -671,8 +615,6 @@ class labTOF(Frame):
 					self.intensity.append(int_temp[index])
 					self.time.append(time_temp[index])
 			
-		#allows user to save calibration file
-		self.calMenu.entryconfig("Save Calibration File", state=NORMAL)
 		#plots figure in mass domain
 		self.mass_domain()
 
