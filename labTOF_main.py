@@ -1,3 +1,4 @@
+import FileDialog
 import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
@@ -213,7 +214,7 @@ class labTOF(Frame):
 		ax = self.fig.add_subplot(111)
 		#clear axis
 		ax.cla()
-		spectrum=ax.plot(data[0],data[1])
+		spectrum=ax.plot(data[0],data[1], color='k')
 		ax.set_xlabel(xaxis_title)#, fontsize=6)
 		ax.set_ylabel('intensity (V)')#, fontsize=6)
 		#ax.tick_params('both', length=4, width=1, which='major')
@@ -250,6 +251,8 @@ class labTOF(Frame):
 
 		self.toolbar.update()
 		#self.canvas._tkcanvas.pack(side=TOP)
+		#not sure what this line does, comment out for now
+		#it appears to be necessary for matplotlib grid?
 		self.canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=True)
 
 	#def delete_figure(self):
@@ -260,7 +263,7 @@ class labTOF(Frame):
 	def onOpen(self):
 		#displays .txt files in browser window
 		#only reads time domain data files
-		ftypes = [('binary files', '*.trc'), ('txt files', '*.txt')]
+		ftypes = [('txt files', '*.txt'), ('binary files', '*.trc')]
 		dlg = tkFileDialog.Open(self, filetypes = ftypes)
 		fl = dlg.show()
 		
@@ -334,7 +337,7 @@ class labTOF(Frame):
 		self.SmoothDialog(self.parent)
 		#wait for dialog to close
 		self.top.wait_window(self.top)
-		smoothed_signal = scipy.signal.savgol_filter(self.intensity,self.window,self.poly)
+		smoothed_signal = scipy.signal.savgol_filter(self.intensity, int(self.window), int(self.poly))
 		#convert from array to list
 		self.intensity=smoothed_signal.tolist()
 		#print 'intensity: ', len(self.intensity), type(self.intensity)
@@ -652,7 +655,13 @@ class labTOF(Frame):
 			#fit quadratic fuction through cal points
 			popt, pcov = curve_fit(func_quad, self.cal_time, self.cal_mass)
 			#convert time to mass
-			self.mass[:] = [popt[0]*(x**2)*(1E10) + popt[1] for x in self.time]
+			#self.mass[:] = [popt[0]*(x**2)*(1E10) + popt[1] for x in self.time]
+			self.mass=[]
+			for x in self.time:
+				if x < 0:
+					self.mass.append(-popt[0]*(x**2)*(1E10) + popt[1])
+				else:
+					self.mass.append(popt[0]*(x**2)*(1E10) + popt[1])
 
 		#if MSMS mode
 		elif self.MSMS_flag==1:
@@ -681,10 +690,14 @@ class labTOF(Frame):
 
 	#function for file input
 	def readFile(self, filename):
+		flag_pico=False
 		file=open(filename,'r')
 		#there is some extra formatting on the first line - delete this data
 		header=file.readline()
 		header=file.readline()
+		#check if Picoscope:
+		if header[1:3] == 'us':
+			flag_pico=True
 		header=file.readline()
 		header=file.readline()
 		header=file.readline()
@@ -698,11 +711,17 @@ class labTOF(Frame):
 			if ',' in line:
 				#read each row - store data in columns
 				temp = line.split(',')
-				time.append(float(temp[0]))
+				if flag_pico:
+					time.append(float(temp[0])*1E-6)
+				else:
+					time.append(float(temp[0]))
 				intensity.append(float(temp[1].rstrip('/n')))
 			if '\t' in line:
 				temp = line.split('\t')
-				time.append(float(temp[0]))
+				if flag_pico:
+					time.append(float(temp[0])*1E-6)
+				else:
+					time.append(float(temp[0]))
 				intensity.append(float(temp[1].rstrip('/n')))
 
 		data=[time, intensity]
